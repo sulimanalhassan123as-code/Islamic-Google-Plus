@@ -124,3 +124,65 @@ function initQibla() {
   }
 }
 initQibla();
+// === QIBLA DIRECTION ===
+async function initQibla() {
+  const qiblaInfo = document.getElementById("qibla-info");
+  const canvas = document.getElementById("qibla-compass");
+  const ctx = canvas.getContext("2d");
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      const kaabaLat = 21.4225;
+      const kaabaLon = 39.8262;
+
+      const qiblaDir = Math.atan2(
+        Math.sin(kaabaLon - lon),
+        Math.cos(lat) * Math.tan(kaabaLat) - Math.sin(lat) * Math.cos(kaabaLon - lon)
+      );
+
+      const angle = (qiblaDir * (180 / Math.PI) + 360) % 360;
+      qiblaInfo.textContent = `Qibla direction: ${angle.toFixed(1)}° from North`;
+
+      drawCompass(angle);
+    }, () => {
+      qiblaInfo.textContent = "Location access denied.";
+    });
+  } else {
+    qiblaInfo.textContent = "Geolocation not supported.";
+  }
+
+  function drawCompass(angle) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.arc(90, 90, 80, 0, 2 * Math.PI);
+    ctx.strokeStyle = "#00bfa6";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(90, 90);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, -60);
+    ctx.strokeStyle = "#ffcc00";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+initQibla();
+
+// === DAILY ISLAMIC QUOTE ===
+const quotes = [
+  "“The best among you are those who learn the Qur’an and teach it.” – Prophet Muhammad ﷺ",
+  "“Indeed, with hardship comes ease.” – Qur'an 94:6",
+  "“The most beloved deeds to Allah are those done regularly, even if small.” – Bukhari",
+  "“Allah does not burden a soul beyond that it can bear.” – Qur'an 2:286",
+  "“Remember Allah in times of ease and He will remember you in times of difficulty.” – Tirmidhi"
+];
+
+document.getElementById("daily-quote").textContent = quotes[Math.floor(Math.random() * quotes.length)];
