@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Islamic Google Plus</title>
-  <link rel="stylesheet" href="styles/styles.css">
+  <link rel="stylesheet" href="css/styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
 </head>
 <body>
   <header>
     <div class="logo">🕌 Islamic Google Plus</div>
-    <button class="theme-toggle" id="theme-toggle">
+    <button class="theme-toggle" onclick="toggleTheme()">
       <span id="theme-icon-moon">🌙</span>
       <span id="theme-icon-sun">☀️</span>
     </button>
   </header>
 
   <main class="content">
-    <!-- Search Section -->
+
     <section class="search-section">
-      <h1>Search Islamic resources and ask the AI assistant</h1>
+      <h1>Search Islamic Resources</h1>
       <div class="search-bar-container">
         <form id="search-form">
-          <input type="text" class="search-input" placeholder="Search topics, prophets, Quranic verses..." required>
+          <input type="text" class="search-input" placeholder="Search topics, prophets, Quranic verses..." id="search-query">
           <button type="submit" class="search-button">Search</button>
         </form>
       </div>
@@ -30,37 +30,34 @@
       <div id="search-results-container"></div>
     </section>
 
-    <!-- Qibla Compass -->
-    <section class="widgets">
-      <div id="qibla-container">
-        <h2>Qibla Direction</h2>
-        <canvas id="qibla-compass" width="200" height="200"></canvas>
-      </div>
-
-      <!-- Daily Islamic Quote -->
-      <div id="daily-quote">
-        <h2>Daily Islamic Quote</h2>
-        <div class="quote-card" id="quote-card">Loading...</div>
-      </div>
-    </section>
-
-    <!-- AI Section -->
     <section class="ai-section">
       <h2>Ask the Islamic Assistant</h2>
       <div class="ai-input-container">
-        <textarea id="ai-question-input" placeholder="Ask the Islamic assistant a respectful question..."></textarea>
-        <button id="ai-send-btn" class="ai-send-btn">Ask</button>
+        <textarea id="ai-question-input" placeholder="Ask a respectful question..."></textarea>
+        <button class="ai-send-btn" id="ai-send-btn">Ask</button>
       </div>
       <div id="ai-answer-container"></div>
     </section>
+
+    <section class="qibla-section">
+      <h2>Qibla Direction</h2>
+      <div id="qibla-container">
+        <canvas id="qibla-compass" width="200" height="200"></canvas>
+        <p id="qibla-angle">Calculating...</p>
+      </div>
+    </section>
+
+    <section class="daily-quotes">
+      <h2>Daily Islamic Quote</h2>
+      <div id="quote-container"></div>
+    </section>
+
   </main>
 
   <footer>
-    &copy; 2025 Islamic Google Plus | Developed by Suliman
+    &copy; 2025 Islamic Google Plus. All rights reserved.
   </footer>
 
   <script src="js/app.js"></script>
-  <script src="js/qibla.js"></script>
-  <script src="js/quotes.js"></script>
 </body>
 </html>
