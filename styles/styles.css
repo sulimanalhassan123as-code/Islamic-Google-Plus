@@ -218,3 +218,31 @@ footer {
     grid-template-columns: 1fr;
   }
   }
+.islamic-tools {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 40px;
+}
+
+.qibla-card, .quote-card {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 20px;
+  border-radius: 16px;
+  width: 280px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  backdrop-filter: blur(6px);
+  transition: transform 0.3s;
+}
+
+.qibla-card:hover, .quote-card:hover {
+  transform: translateY(-4px);
+}
+
+.qibla-card h2, .quote-card h2 {
+  color: #00bfa6;
+  margin-bottom: 12px;
+  }
