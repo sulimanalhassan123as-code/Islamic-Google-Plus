@@ -1,57 +1,182 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Islamic Google Plus</title>
-  <link rel="stylesheet" href="styles/styles.css">
-  <script defer src="js/app.js"></script>
+  <link rel="stylesheet" href="styles/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet" />
 </head>
+
 <body>
-  <header>
-    <h1>🕌 Islamic Google Plus</h1>
-    <button id="theme-toggle" title="Toggle light/dark mode">🌙</button>
-  </header>
+  <div class="content">
+    <!-- HEADER -->
+    <header>
+      <div class="logo">🕌 Islamic Google Plus</div>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+        <span id="theme-icon-sun">☀️</span>
+        <span id="theme-icon-moon">🌙</span>
+      </button>
+    </header>
 
-  <main>
-    <section class="search-section">
-      <input type="text" id="search-input" placeholder="Search Islamic topics, prophets, Quranic verses..." />
-      <button id="search-btn">🔍 Search</button>
-      <div id="results"></div>
-    </section>
-<section class="islamic-tools">
-  <div class="qibla-card">
-    <h2>🕌 Qibla Direction</h2>
-    <p id="qibla-info">Detecting your location...</p>
-    <canvas id="qibla-compass" width="180" height="180"></canvas>
+    <!-- SEARCH -->
+    <main>
+      <section class="search-section">
+        <h1>Search Islamic resources &amp; learn from authentic sources</h1>
+        <div class="search-bar-container">
+          <form id="search-form">
+            <input type="text" id="query" class="search-input" placeholder="Search topics, prophets, Qur’an verses..." required />
+            <button type="submit" class="search-button">Search</button>
+          </form>
+        </div>
+        <div id="loading" class="loading-message"></div>
+        <div id="search-results-container"></div>
+      </section>
+
+      <!-- ASK AI -->
+      <section class="ai-section" style="margin-top:3rem;">
+        <h2>Ask AI (Powered by Gemini 2.5 Pro)</h2>
+        <div class="ai-input-container">
+          <textarea id="ai-question-input" placeholder="Ask the Islamic assistant a respectful question..."></textarea>
+          <button id="ai-send-btn" class="ai-send-btn">Ask</button>
+        </div>
+        <div id="ai-answer-container"></div>
+      </section>
+
+      <!-- QIBLA + QUOTES -->
+      <section class="extras-section" style="margin-top:4rem;">
+        <h2>🕋 Qibla Direction &amp; Daily Quote</h2>
+        <div id="extras-container" style="display:grid;gap:1.5rem;margin-top:1rem;">
+          <!-- Qibla -->
+          <div class="qibla-card search-result-item">
+            <h3>Qibla Direction</h3>
+            <p id="qibla-status">Loading Qibla direction…</p>
+            <canvas id="qibla-compass" width="200" height="200"></canvas>
+          </div>
+
+          <!-- Daily Quote -->
+          <div class="quote-card search-result-item">
+            <h3>Daily Islamic Quote</h3>
+            <p id="daily-quote">Loading quote…</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>© 2025 Islamic Google Plus | Built with Faith &amp; Technology</p>
+    </footer>
   </div>
 
-  <div class="quote-card">
-    <h2>📖 Daily Islamic Quote</h2>
-    <p id="daily-quote">Loading...</p>
-  </div>
-</section>
-    <section class="ask-section">
-      <textarea id="ask-input" placeholder="Ask the Islamic assistant a respectful question..."></textarea>
-      <button id="ask-btn">🤲 Ask AI</button>
-      <div id="answer"></div>
-    </section>
+  <script>
+    // --- THEME TOGGLE ---
+    const body = document.body;
+    const themeToggle = document.getElementById("theme-toggle");
+    themeToggle.addEventListener("click", () => {
+      const isDark = body.getAttribute("data-theme") === "dark";
+      body.setAttribute("data-theme", isDark ? "light" : "dark");
+    });
 
-    <section class="extras">
-      <div id="qibla">
-        <h2>🧭 Qibla Direction</h2>
-        <p id="qibla-info">Finding direction...</p>
-      </div>
+    // --- SEARCH HANDLER ---
+    const searchForm = document.getElementById("search-form");
+    searchForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const query = document.getElementById("query").value.trim();
+      const loading = document.getElementById("loading");
+      const resultsContainer = document.getElementById("search-results-container");
+      if (!query) return;
+      loading.textContent = "Searching...";
+      resultsContainer.innerHTML = "";
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        loading.textContent = "";
+        if (!data.items?.length) {
+          resultsContainer.innerHTML = "<p>No results found.</p>";
+          return;
+        }
+        resultsContainer.innerHTML = data.items
+          .map(item => `
+            <div class="search-result-item">
+              <a href="${item.link}" class="result-title" target="_blank">${item.title}</a>
+              <span class="result-url">${item.link}</span>
+              <p class="result-snippet">${item.snippet}</p>
+            </div>`).join("");
+      } catch (err) {
+        loading.textContent = "Something went wrong.";
+      }
+    });
 
-      <div id="daily-quote">
-        <h2>📖 Daily Islamic Quote</h2>
-        <p id="quote-text">Loading wisdom...</p>
-      </div>
-    </section>
-  </main>
+    // --- ASK AI ---
+    document.getElementById("ai-send-btn").addEventListener("click", async () => {
+      const input = document.getElementById("ai-question-input");
+      const container = document.getElementById("ai-answer-container");
+      const question = input.value.trim();
+      if (!question) return;
+      container.innerHTML = "<p>Thinking… 🤔</p>";
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        container.innerHTML = `<div class="ai-answer">${data.answer || "No response."}</div>`;
+      } catch {
+        container.innerHTML = "<p>Failed to get answer.</p>";
+      }
+    });
 
-  <footer>
-    <p>© 2025 Islamic Google Plus | Designed with ❤️ by Suliman</p>
-  </footer>
+    // --- DAILY QUOTE ---
+    const quotes = [
+      "“The strongest among you is the one who controls his anger.” – Prophet Muhammad (ﷺ)",
+      "“Indeed, with hardship comes ease.” – Qur’an 94:6",
+      "“Trust in Allah, but tie your camel.” – Hadith",
+      "“The best among you are those who learn the Qur’an and teach it.”",
+      "“Kind words and forgiveness are better than charity followed by injury.” – Qur’an 2:263"
+    ];
+    document.getElementById("daily-quote").textContent =
+      quotes[Math.floor(Math.random() * quotes.length)];
+
+    // --- QIBLA DIRECTION (approximate) ---
+    const qiblaStatus = document.getElementById("qibla-status");
+    const canvas = document.getElementById("qibla-compass");
+    const ctx = canvas.getContext("2d");
+
+    function drawCompass(angle) {
+      ctx.clearRect(0, 0, 200, 200);
+      ctx.beginPath();
+      ctx.arc(100, 100, 90, 0, 2 * Math.PI);
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(100, 100);
+      const rad = (angle - 90) * Math.PI / 180;
+      ctx.lineTo(100 + 70 * Math.cos(rad), 100 + 70 * Math.sin(rad));
+      ctx.strokeStyle = "#81e6d9";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+
+    function calculateQibla(lat, lon) {
+      const kaabaLat = 21.4225, kaabaLon = 39.8262;
+      const phiK = kaabaLat * Math.PI / 180;
+      const phiU = lat * Math.PI / 180;
+      const lambda = (kaabaLon - lon) * Math.PI / 180;
+      const qibla = Math.atan2(Math.sin(lambda), Math.cos(phiU) * Math.tan(phiK) - Math.sin(phiU) * Math.cos(lambda));
+      return (qibla * 180 / Math.PI + 360) % 360;
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        const angle = calculateQibla(latitude, longitude);
+        drawCompass(angle);
+        qiblaStatus.textContent = `Qibla is ${angle.toFixed(1)}° from North.`;
+      }, () => qiblaStatus.textContent = "Location permission denied.");
+    } else qiblaStatus.textContent = "Geolocation not supported.";
+  </script>
 </body>
-</html>
+  </html>
