@@ -1,4 +1,4 @@
-// js/app.js - frontend logic for Knowledge Garden edition
+// js/app.js — Knowledge Garden Edition (fixed version)
 
 // ========== THEME ==========
 const themeToggle = document.getElementById('theme-toggle');
@@ -70,7 +70,7 @@ askBtn.addEventListener('click', async () => {
     const res = await fetch('/api/ask', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ question: q })
+      body: JSON.stringify({ message: q }) // ✅ FIXED FIELD NAME
     });
     const data = await res.json();
     askLoading.textContent = '';
@@ -86,7 +86,7 @@ askBtn.addEventListener('click', async () => {
   }
 });
 
-// tiny safe-escape
+// tiny safe-escape function
 function escapeHtml(str){
   return String(str).replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
 }
@@ -104,7 +104,6 @@ const QUOTES = [
 ];
 
 function showDailyQuote(){
-  // rotate by day to keep consistent daily, fallback random
   const day = new Date().getDate();
   dailyQuoteEl.textContent = QUOTES[day % QUOTES.length];
 }
@@ -115,15 +114,13 @@ newQuoteBtn.addEventListener('click', () => {
 });
 
 // ========== WHATSAPP SENDING ==========
-const WA_PHONE = '233599931348'; // your number (no +)
-const waButton = document.getElementById('whatsapp-button');
+const WA_PHONE = '233599931348';
 const waSend = document.getElementById('wa-send');
 const waMessageInput = document.getElementById('wa-message');
 
 waSend.addEventListener('click', () => {
   const msg = waMessageInput.value.trim();
   if (!msg) {
-    // open chat without message
     window.open(`https://wa.me/${WA_PHONE}`, '_blank');
     return;
   }
