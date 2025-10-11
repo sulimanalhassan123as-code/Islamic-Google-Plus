@@ -1,181 +1,82 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Islamic Google Plus</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Islamic Google Plus — Knowledge Garden</title>
   <link rel="stylesheet" href="styles/styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-  <div class="content">
-    <!-- HEADER -->
-    <header>
-      <div class="logo">🕌 Islamic Google Plus</div>
-      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-        <span id="theme-icon-sun">☀️</span>
-      </button>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">🕌</div>
+        <div class="title">
+          <div class="name">Islamic Google Plus</div>
+          <div class="tag">Search Islamic resources • Ask the AI • Daily inspiration</div>
+        </div>
+      </div>
+
+      <div class="right-controls">
+        <button id="theme-toggle" class="btn-icon" title="Toggle theme">🌙</button>
+      </div>
     </header>
 
-    <!-- SEARCH -->
-    <main>
-      <section class="search-section">
-        <h1>Search Islamic resources &amp; learn from authentic sources</h1>
-        <div class="search-bar-container">
-          <form id="search-form">
-            <input type="text" id="query" class="search-input" placeholder="Search topics, prophets, Qur’an verses..." required />
-            <button type="submit" class="search-button">Search</button>
-          </form>
-        </div>
-        <div id="loading" class="loading-message"></div>
-        <div id="search-results-container"></div>
+    <main class="main">
+      <!-- SEARCH -->
+      <section class="card search-card">
+        <h1 class="section-title">Search Islamic Resources</h1>
+        <form id="search-form" class="search-form" autocomplete="off">
+          <input id="search-input" class="input-lg" type="search" placeholder="Search topics, Prophets, Qur'an verses, scholars..." />
+          <button type="submit" id="search-button" class="btn-primary">Search</button>
+        </form>
+
+        <div id="search-loading" class="muted small"> </div>
+        <div id="search-results" class="results"></div>
       </section>
 
       <!-- ASK AI -->
-      <section class="ai-section" style="margin-top:3rem;">
-        <h2>Ask AI (Powered by Gemini 2.5 Pro)</h2>
-        <div class="ai-input-container">
-          <textarea id="ai-question-input" placeholder="Ask the Islamic assistant a respectful question..."></textarea>
-          <button id="ai-send-btn" class="ai-send-btn">Ask</button>
+      <section class="card ai-card">
+        <h2 class="section-title">Ask the Islamic Assistant (Gemini 2.5 Pro)</h2>
+        <textarea id="ask-input" class="textarea-lg" placeholder="Ask a respectful question..."></textarea>
+        <div class="row">
+          <button id="ask-button" class="btn-accent">Ask AI</button>
+          <div id="ask-loading" class="muted small"></div>
         </div>
-        <div id="ai-answer-container"></div>
+        <div id="ask-answer" class="ai-answer"></div>
       </section>
 
-      <!-- QIBLA + QUOTES -->
-      <section class="extras-section" style="margin-top:4rem;">
-        <h2>🕋 Qibla Direction &amp; Daily Quote</h2>
-        <div id="extras-container" style="display:grid;gap:1.5rem;margin-top:1rem;">
-          <!-- Qibla -->
-          <div class="qibla-card search-result-item">
-            <h3>Qibla Direction</h3>
-            <p id="qibla-status">Loading Qibla direction…</p>
-            <canvas id="qibla-compass" width="200" height="200"></canvas>
-          </div>
-
-          <!-- Daily Quote -->
-          <div class="quote-card search-result-item">
-            <h3>Daily Islamic Quote</h3>
-            <p id="daily-quote">Loading quote…</p>
-          </div>
-        </div>
+      <!-- DAILY QUOTE -->
+      <section class="card quote-card">
+        <h2 class="section-title">Daily Islamic Quote</h2>
+        <div id="daily-quote" class="quote-text">Loading quote…</div>
+        <button id="new-quote" class="btn-link small">New random quote</button>
       </section>
+
     </main>
 
-    <!-- FOOTER -->
-    <footer>
-      <p>© 2025 Islamic Google Plus | Built with Faith &amp; Technology</p>
+    <!-- FOOTER with WhatsApp -->
+    <footer class="footer">
+      <div class="footer-left">
+        <div>© 2025 Islamic Google Plus — Knowledge Garden</div>
+      </div>
+
+      <div class="footer-right">
+        <!-- WhatsApp quick button -->
+        <a id="whatsapp-button" class="btn-whatsapp" href="https://wa.me/233599931348" target="_blank" rel="noopener">
+          Chat on WhatsApp
+        </a>
+
+        <!-- WhatsApp contact form (prefilled message) -->
+        <div class="wa-form">
+          <input id="wa-message" class="input-sm" placeholder="Write a short message to send on WhatsApp..." />
+          <button id="wa-send" class="btn-primary small">Send to WhatsApp</button>
+        </div>
+      </div>
     </footer>
   </div>
 
-  <script>
-    // --- THEME TOGGLE ---
-    const body = document.body;
-    const themeToggle = document.getElementById("theme-toggle");
-    themeToggle.addEventListener("click", () => {
-      const isDark = body.getAttribute("data-theme") === "dark";
-      body.setAttribute("data-theme", isDark ? "light" : "dark");
-    });
-
-    // --- SEARCH HANDLER ---
-    const searchForm = document.getElementById("search-form");
-    searchForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const query = document.getElementById("query").value.trim();
-      const loading = document.getElementById("loading");
-      const resultsContainer = document.getElementById("search-results-container");
-      if (!query) return;
-      loading.textContent = "Searching...";
-      resultsContainer.innerHTML = "";
-      try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        loading.textContent = "";
-        if (!data.items?.length) {
-          resultsContainer.innerHTML = "<p>No results found.</p>";
-          return;
-        }
-        resultsContainer.innerHTML = data.items
-          .map(item => `
-            <div class="search-result-item">
-              <a href="${item.link}" class="result-title" target="_blank">${item.title}</a>
-              <span class="result-url">${item.link}</span>
-              <p class="result-snippet">${item.snippet}</p>
-            </div>`).join("");
-      } catch (err) {
-        loading.textContent = "Something went wrong.";
-      }
-    });
-
-    // --- ASK AI ---
-    document.getElementById("ai-send-btn").addEventListener("click", async () => {
-      const input = document.getElementById("ai-question-input");
-      const container = document.getElementById("ai-answer-container");
-      const question = input.value.trim();
-      if (!question) return;
-      container.innerHTML = "<p>Thinking… 🤔</p>";
-      try {
-        const res = await fetch("/api/ask", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ question })
-        });
-        const data = await res.json();
-        container.innerHTML = `<div class="ai-answer">${data.answer || "No response."}</div>`;
-      } catch {
-        container.innerHTML = "<p>Failed to get answer.</p>";
-      }
-    });
-
-    // --- DAILY QUOTE ---
-    const quotes = [
-      "“The strongest among you is the one who controls his anger.” – Prophet Muhammad (ﷺ)",
-      "“Indeed, with hardship comes ease.” – Qur’an 94:6",
-      "“Trust in Allah, but tie your camel.” – Hadith",
-      "“The best among you are those who learn the Qur’an and teach it.”",
-      "“Kind words and forgiveness are better than charity followed by injury.” – Qur’an 2:263"
-    ];
-    document.getElementById("daily-quote").textContent =
-      quotes[Math.floor(Math.random() * quotes.length)];
-
-    // --- QIBLA DIRECTION (approximate) ---
-    const qiblaStatus = document.getElementById("qibla-status");
-    const canvas = document.getElementById("qibla-compass");
-    const ctx = canvas.getContext("2d");
-
-    function drawCompass(angle) {
-      ctx.clearRect(0, 0, 200, 200);
-      ctx.beginPath();
-      ctx.arc(100, 100, 90, 0, 2 * Math.PI);
-      ctx.strokeStyle = "#FFD700";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(100, 100);
-      const rad = (angle - 90) * Math.PI / 180;
-      ctx.lineTo(100 + 70 * Math.cos(rad), 100 + 70 * Math.sin(rad));
-      ctx.strokeStyle = "#81e6d9";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-    }
-
-    function calculateQibla(lat, lon) {
-      const kaabaLat = 21.4225, kaabaLon = 39.8262;
-      const phiK = kaabaLat * Math.PI / 180;
-      const phiU = lat * Math.PI / 180;
-      const lambda = (kaabaLon - lon) * Math.PI / 180;
-      const qibla = Math.atan2(Math.sin(lambda), Math.cos(phiU) * Math.tan(phiK) - Math.sin(phiU) * Math.cos(lambda));
-      return (qibla * 180 / Math.PI + 360) % 360;
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-        const angle = calculateQibla(latitude, longitude);
-        drawCompass(angle);
-        qiblaStatus.textContent = `Qibla is ${angle.toFixed(1)}° from North.`;
-      }, () => qiblaStatus.textContent = "Location permission denied.");
-    } else qiblaStatus.textContent = "Geolocation not supported.";
-  </script>
+  <script src="js/app.js" defer></script>
 </body>
-  </html>
+</html>
