@@ -1,133 +1,67 @@
-// js/app.js - frontend logic for Knowledge Garden edition
+// --- Islamic Google Plus app.js ---
+// Handles both Search and AI ask functions properly
 
-// ========== THEME ==========
-const themeToggle = document.getElementById('theme-toggle');
-const body = document.body;
-const savedTheme = localStorage.getItem('kg_theme') || 'light';
-body.setAttribute('data-theme', savedTheme);
+// ======== SEARCH FUNCTION =========
+document.getElementById("searchButton")?.addEventListener("click", async () => {
+  const query = document.getElementById("searchInput").value.trim();
+  if (!query) return alert("Please enter something to search.");
 
-themeToggle.addEventListener('click', () => {
-  const current = body.getAttribute('data-theme');
-  const next = current === 'light' ? 'dark' : 'light';
-  body.setAttribute('data-theme', next);
-  localStorage.setItem('kg_theme', next);
-  themeToggle.textContent = next === 'light' ? '🌙' : '☀️';
-});
+  const resultsContainer = document.getElementById("results");
+  resultsContainer.innerHTML = "<p>Searching...</p>";
 
-// ========== SEARCH ==========
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-const resultsEl = document.getElementById('search-results');
-const loadingEl = document.getElementById('search-loading');
-
-async function runSearch(q){
-  loadingEl.textContent = 'Searching…';
-  resultsEl.innerHTML = '';
   try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-    if (!res.ok) {
-      const j = await res.json().catch(()=>({}));
-      loadingEl.textContent = j?.error || 'Search error';
+    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+
+    if (!data.results || data.results.length === 0) {
+      resultsContainer.innerHTML = "<p>No results found.</p>";
       return;
     }
-    const data = await res.json();
-    loadingEl.textContent = '';
-    const items = data.results || [];
-    if (!items.length) {
-      resultsEl.innerHTML = `<div class="muted small">No results found.</div>`;
-      return;
-    }
-    resultsEl.innerHTML = items.map(it => `
-      <div class="result-item">
-        <a href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
-        <div class="snippet">${it.snippet || ''}</div>
-      </div>`).join('');
-  } catch (err) {
-    console.error('Search error', err);
-    loadingEl.textContent = 'Network error while searching.';
-  }
-}
 
-searchForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const q = searchInput.value.trim();
-  if (!q) return;
-  runSearch(q);
-});
-
-// ========== ASK AI ==========
-const askBtn = document.getElementById('ask-button');
-const askInput = document.getElementById('ask-input');
-const askAnswer = document.getElementById('ask-answer');
-const askLoading = document.getElementById('ask-loading');
-
-askBtn.addEventListener('click', async () => {
-  const q = askInput.value.trim();
-  if (!q) return;
-  askAnswer.innerHTML = '';
-  askLoading.textContent = 'Thinking…';
-  try {
-    const res = await fetch('/api/ask', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ question: q })
-    });
-    const data = await res.json();
-    askLoading.textContent = '';
-    if (res.ok && data.answer) {
-      askAnswer.innerHTML = `<div class="ai-answer">${escapeHtml(data.answer)}</div>`;
-    } else {
-      askAnswer.innerHTML = `<div class="ai-answer">No answer — ${data?.error || 'unknown error'}</div>`;
-    }
-  } catch (err) {
-    console.error('Ask error', err);
-    askLoading.textContent = '';
-    askAnswer.innerHTML = `<div class="ai-answer">Network error while contacting AI.</div>`;
+    resultsContainer.innerHTML = data.results
+      .map(
+        (item) => `
+        <div class="result">
+          <a href="${item.link}" target="_blank">${item.title}</a>
+          <p>${item.snippet}</p>
+        </div>
+      `
+      )
+      .join("");
+  } catch (error) {
+    console.error(error);
+    resultsContainer.innerHTML = "<p>Failed to fetch search results.</p>";
   }
 });
 
-// tiny safe-escape
-function escapeHtml(str){
-  return String(str).replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
-}
+// ======== ASK AI FUNCTION =========
+document.getElementById("askButton")?.addEventListener("click", async () => {
+  const userInput = document.getElementById("askInput").value.trim();
+  const aiResponse = document.getElementById("aiResponse");
 
-// ========== DAILY QUOTE ==========
-const dailyQuoteEl = document.getElementById('daily-quote');
-const newQuoteBtn = document.getElementById('new-quote');
-
-const QUOTES = [
-  "Indeed, with hardship comes ease. — Qur'an 94:6",
-  "The best among you are those who learn the Qur'an and teach it. — Prophet ﷺ",
-  "Whoever seeks knowledge, Allah will make easy for him a path to Paradise. — Hadith",
-  "Kindness is a mark of faith. — Prophet ﷺ",
-  "Remember Allah in times of ease and He will remember you in times of difficulty. — Tirmidhi"
-];
-
-function showDailyQuote(){
-  // rotate by day to keep consistent daily, fallback random
-  const day = new Date().getDate();
-  dailyQuoteEl.textContent = QUOTES[day % QUOTES.length];
-}
-showDailyQuote();
-
-newQuoteBtn.addEventListener('click', () => {
-  dailyQuoteEl.textContent = QUOTES[Math.floor(Math.random()*QUOTES.length)];
-});
-
-// ========== WHATSAPP SENDING ==========
-const WA_PHONE = '233599931348'; // your number (no +)
-const waButton = document.getElementById('whatsapp-button');
-const waSend = document.getElementById('wa-send');
-const waMessageInput = document.getElementById('wa-message');
-
-waSend.addEventListener('click', () => {
-  const msg = waMessageInput.value.trim();
-  if (!msg) {
-    // open chat without message
-    window.open(`https://wa.me/${WA_PHONE}`, '_blank');
+  if (!userInput) {
+    aiResponse.innerHTML = "Please type your question.";
     return;
   }
-  const encoded = encodeURIComponent(msg);
-  const url = `https://wa.me/${WA_PHONE}?text=${encoded}`;
-  window.open(url, '_blank');
+
+  aiResponse.innerHTML = "🤖 Thinking...";
+
+  try {
+    const response = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userInput }), // ✅ this sends the actual question
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      aiResponse.innerHTML = "⚠️ " + (data.error || "AI error");
+    } else {
+      aiResponse.innerHTML = data.reply || "No answer received.";
+    }
+  } catch (error) {
+    console.error("AI fetch error:", error);
+    aiResponse.innerHTML = "⚠️ Network error when connecting to AI.";
+  }
 });
